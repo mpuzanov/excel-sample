@@ -16,10 +16,10 @@ var (
 )
 
 func main() {
+	// готовим тестовые данные
+	p = model.PrepareTestData(10000)
 
-	fmt.Println("\n=======  tealeg/xlsx ========")
-	p = model.PrepareTestData()
-
+	fmt.Println("=======  tealeg/xlsx ========")
 	fileName, err := xlsx.SaveToExcel1(p, ".", "file1*.xlsx")
 	defer os.Remove(fileName)
 	if err != nil {

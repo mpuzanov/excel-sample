@@ -8,8 +8,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var testPayments *model.ListPayments
+
+func TestMain(m *testing.M) {
+	testPayments = model.PrepareTestData(model.CountTestData)
+	os.Exit(m.Run())
+}
+
 func BenchmarkSaveToExcel1(b *testing.B) {
-	testPayments := model.PrepareTestData()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		fileName, _ := SaveToExcel1(testPayments, ".", "file1*.xlsx")
@@ -17,7 +23,6 @@ func BenchmarkSaveToExcel1(b *testing.B) {
 	}
 }
 func TestSaveToExcel1(t *testing.T) {
-	testPayments := model.PrepareTestData()
 	fileName, err := SaveToExcel1(testPayments, ".", "file1*.xlsx")
 	assert.Empty(t, err)
 	defer os.Remove(fileName)
@@ -25,7 +30,6 @@ func TestSaveToExcel1(t *testing.T) {
 }
 
 func BenchmarkSaveToExcel2(b *testing.B) {
-	testPayments := model.PrepareTestData()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		fileName, _ := SaveToExcel2(testPayments, ".", "file1*.xlsx")
@@ -34,7 +38,6 @@ func BenchmarkSaveToExcel2(b *testing.B) {
 }
 
 func TestSaveToExcel2(t *testing.T) {
-	testPayments := model.PrepareTestData()
 	fileName, err := SaveToExcel2(testPayments, ".", "file1*.xlsx")
 	assert.Empty(t, err)
 	defer os.Remove(fileName)

@@ -98,7 +98,7 @@ func SaveToExcel1(s *model.ListPayments, path, templateFile string) (string, err
 		row = sheet.AddRow()
 		// добавляем поля в строке
 		values := reflect.ValueOf(s.Db[index])
-		//fields := reflect.TypeOf(s.Db[index])
+
 		for i := 0; i < len(headerMap); i++ {
 			cell = row.AddCell()
 			f := values.FieldByName(strings.Title(headerMap[i].Name))
@@ -220,7 +220,7 @@ func SaveToExcel2(s *model.ListPayments, path, templateFile string) (string, err
 	return fileName, nil
 }
 
-// ReadFile .
+// ReadFile читаем файл в структуру
 func ReadFile(fileName string) (model.ListPayments, error) {
 	res := model.ListPayments{}
 	sheetName := "Sheet1"

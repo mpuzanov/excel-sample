@@ -33,6 +33,9 @@ type StoragePayments interface {
 	SaveToExcel2(path, templateFile string) (string, error)
 }
 
+// CountTestData кол-во платежей для тестирования
+var CountTestData = 10000
+
 // String Вывод общей информации о слайсе платежей
 func (p *ListPayments) String() string {
 	val := 0.0
@@ -47,11 +50,10 @@ func (p *ListPayments) String() string {
 }
 
 // PrepareTestData создаём тестовый слайс платежей
-func PrepareTestData() *ListPayments {
-	const countPayments = 10000
+func PrepareTestData(count int) *ListPayments {
 	tp := ListPayments{}
-	tp.Db = make([]Payment, countPayments)
-	for i := 0; i < countPayments; i++ {
+	tp.Db = make([]Payment, count)
+	for i := 0; i < count; i++ {
 		tp.Db[i].Occ = rand.Intn(999999)
 		tp.Db[i].Address = "Пушкинская, 240А, 50"
 		tp.Db[i].Date = time.Date(2018, time.August, 30, 0, 0, 0, 0, time.UTC) //time.Now()

@@ -371,7 +371,7 @@ func SaveToExcelStream(s *model.ListPayments, path, templateFile string) (string
 	return fileName, nil
 }
 
-// ReadFile .
+// ReadFile читаем файл в структуру
 func ReadFile(fileName string) (model.ListPayments, error) {
 	res := model.ListPayments{}
 	sheetName := "Sheet1"
