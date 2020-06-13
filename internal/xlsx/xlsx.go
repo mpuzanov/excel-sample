@@ -16,15 +16,16 @@ import (
 type ListPayments model.ListPayments
 
 type fieldExcel struct {
-	Name  string
-	With  int
-	Style int
-	Type  string
+	Name     string
+	Position int
+	With     int
+	Style    int
+	Type     string
 }
 
 var (
 	//headerMap список полей в заголовке
-	headerMap = map[int]fieldExcel{
+	headerMap = map[int]*fieldExcel{
 		0: {Name: "№", With: 10},
 		1: {Name: "Fio", With: 20},
 		2: {Name: "Date", With: 10, Type: "time.Time"},
@@ -36,19 +37,14 @@ var (
 		8: {Name: "Commission", With: 10, Type: "float64"},
 		9: {Name: "PaymentAccount", With: 25},
 	}
-
-	headerRead = map[string]int{
-		"Fio":            1,
-		"Date":           2,
-		"Occ":            4,
-		"Address":        5,
-		"Value":          6,
-		"Commission":     8,
-		"PaymentAccount": 9,
-	}
-	//withHeader ширина колонок
-	withHeader = make(map[int]int)
+	headerName = make(map[string]*fieldExcel, 9)
 )
+
+func init() {
+	for i := 0; i < len(headerMap); i++ {
+		headerName[headerMap[i].Name] = &fieldExcel{Name: headerMap[i].Name, Position: i, With: headerMap[i].With}
+	}
+}
 
 // SaveToExcel1 сохраняем данные в файл
 // используем пакет reflect для определения полей структуры
@@ -121,7 +117,6 @@ func SaveToExcel1(s *model.ListPayments, path, templateFile string) (string, err
 	//Устанавливаем ширину колонок
 	for i, col := range sheet.Cols {
 		col.Width = float64(headerMap[i].With)
-		//col.Width = float64(withHeader[headerMFC[i]])
 	}
 
 	err = file.Save(fileName)
@@ -173,7 +168,9 @@ func SaveToExcel2(s *model.ListPayments, path, templateFile string) (string, err
 		cell = row.AddCell()
 		cell.Value = headerMap[index].Name
 		cell.SetStyle(headerStyle)
-		withHeader[index] = utf8.RuneCountInString(headerMap[index].Name) + 5
+		if utf8.RuneCountInString(headerMap[index].Name) > headerMap[index].With {
+			headerMap[index].With = utf8.RuneCountInString(headerMap[index].Name)
+		}
 	}
 
 	//данные
@@ -181,10 +178,10 @@ func SaveToExcel2(s *model.ListPayments, path, templateFile string) (string, err
 		row = sheet.AddRow()
 		// добавляем поля в строке
 
-		for j := 0; j < len(headerMap); j++ {
+		for colNo := 0; colNo < len(headerMap); colNo++ {
 			cell = row.AddCell()
 			cell.SetStyle(dataStyle)
-			switch headerMap[j].Name {
+			switch headerMap[colNo].Name {
 			case "Occ":
 				cell.SetInt(s.Db[index].Occ)
 			case "Address":
@@ -202,14 +199,14 @@ func SaveToExcel2(s *model.ListPayments, path, templateFile string) (string, err
 			case "№":
 				cell.SetInt(index + 1)
 			}
-			if utf8.RuneCountInString(cell.Value) > withHeader[j] {
-				withHeader[j] = utf8.RuneCountInString(cell.Value)
+			if utf8.RuneCountInString(cell.Value) > headerMap[colNo].With {
+				headerMap[colNo].With = utf8.RuneCountInString(cell.Value)
 			}
 		}
 	}
 	//Устанавливаем ширину колонок
 	for i, col := range sheet.Cols {
-		col.Width = float64(withHeader[i])
+		col.Width = float64(headerMap[i].With)
 	}
 
 	err = file.Save(fileName)
@@ -231,13 +228,13 @@ func ReadFile(fileName string) (model.ListPayments, error) {
 	sheet := xlFile.Sheet[sheetName]
 	for _, row := range sheet.Rows[1:] {
 		p := model.Payment{}
-		p.Occ, _ = row.Cells[headerRead["Occ"]].Int()
-		p.Address = row.Cells[headerRead["Address"]].String()
-		p.Date, _ = row.Cells[headerRead["Date"]].GetTime(true)
-		p.Value, _ = row.Cells[headerRead["Value"]].Float()
-		p.Commission, _ = row.Cells[headerRead["Commission"]].Float()
-		p.Fio = row.Cells[headerRead["Fio"]].String()
-		p.PaymentAccount = row.Cells[headerRead["PaymentAccount"]].String()
+		p.Occ, _ = row.Cells[headerName["Occ"].Position].Int()
+		p.Address = row.Cells[headerName["Address"].Position].String()
+		p.Date, _ = row.Cells[headerName["Date"].Position].GetTime(true)
+		p.Value, _ = row.Cells[headerName["Value"].Position].Float()
+		p.Commission, _ = row.Cells[headerName["Commission"].Position].Float()
+		p.Fio = row.Cells[headerName["Fio"].Position].String()
+		p.PaymentAccount = row.Cells[headerName["PaymentAccount"].Position].String()
 		res.Db = append(res.Db, p)
 	}
 	return res, nil

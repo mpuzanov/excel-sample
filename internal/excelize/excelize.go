@@ -17,40 +17,35 @@ import (
 type ListPayments model.Payments
 
 type fieldExcel struct {
-	Name  string
-	With  int
-	Style int
-	Type  string
+	Name     string
+	Position int
+	With     int
+	Style    int
+	Type     string
 }
 
 var (
 	//headerMap список полей в заголовке
-	headerMap = map[int]fieldExcel{
+	headerMap = map[int]*fieldExcel{
 		0: {Name: "№", With: 10},
 		1: {Name: "Fio", With: 20},
-		2: {Name: "Date", With: 10, Type: "time.Time"},
+		2: {Name: "Date", With: 10},
 		3: {Name: "Участок", With: 10},
-		4: {Name: "Occ", With: 10, Type: "int"},
+		4: {Name: "Occ", With: 10},
 		5: {Name: "Address", With: 40},
-		6: {Name: "Value", With: 10, Type: "float64"},
+		6: {Name: "Value", With: 10},
 		7: {Name: "Код_услуги", With: 10},
-		8: {Name: "Commission", With: 10, Type: "float64"},
+		8: {Name: "Commission", With: 10},
 		9: {Name: "PaymentAccount", With: 25},
 	}
-
-	headerRead = map[string]int{
-		"Fio":            1,
-		"Date":           2,
-		"Occ":            4,
-		"Address":        5,
-		"Value":          6,
-		"Commission":     8,
-		"PaymentAccount": 9,
-	}
-
-	//withHeader ширина колонок
-	withHeader = make(map[string]int)
+	headerName = make(map[string]*fieldExcel, 9)
 )
+
+func init() {
+	for i := 0; i < len(headerMap); i++ {
+		headerName[headerMap[i].Name] = &fieldExcel{Name: headerMap[i].Name, Position: i, With: headerMap[i].With}
+	}
+}
 
 //SaveToExcel1 lib Excelize используем пакет reflect для определения полей структуры
 func SaveToExcel1(s *model.ListPayments, path, templateFile string) (string, error) {
@@ -349,22 +344,6 @@ func SaveToExcelStream(s *model.ListPayments, path, templateFile string) (string
 		return "", err
 	}
 
-	// if err = file.SetCellStyle(sheetName, "A1", "G1", styleHeader); err != nil {
-	// 	return err
-	// }
-	// if err = file.SetCellStyle(sheetName, "C2", fmt.Sprintf("C%d", len(s.Db)+1), styleDate); err != nil {
-	// 	return err
-	// }
-	// if err := file.SetCellStyle(sheetName, "D2", fmt.Sprintf("D%d", len(s.Db)+1), styleFloat); err != nil {
-	// 	return err
-	// }
-	// if err = file.SetCellStyle(sheetName, "E2", fmt.Sprintf("E%d", len(s.Db)+1), styleFloat); err != nil {
-	// 	return err
-	// }
-	// if err = file.SetCellStyle(sheetName, "A1", "G1", styleHeader); err != nil {
-	// 	return err
-	// }
-
 	if err := file.SaveAs(fileName); err != nil {
 		return "", err
 	}
@@ -384,13 +363,13 @@ func ReadFile(fileName string) (model.ListPayments, error) {
 	rows, err := f.GetRows(sheetName)
 	for _, row := range rows[1:] {
 		p = model.Payment{}
-		p.Occ, _ = strconv.Atoi(row[headerRead["Occ"]])
-		p.Address = row[headerRead["Address"]]
-		p.Date, _ = time.Parse("", row[headerRead["Date"]])
-		p.Value, _ = strconv.ParseFloat(row[headerRead["Value"]], 64)
-		p.Commission, _ = strconv.ParseFloat(row[headerRead["Commission"]], 64)
-		p.Fio = row[headerRead["Fio"]]
-		p.PaymentAccount = row[headerRead["PaymentAccount"]]
+		p.Occ, _ = strconv.Atoi(row[headerName["Occ"].Position])
+		p.Address = row[headerName["Address"].Position]
+		p.Date, _ = time.Parse("", row[headerName["Date"].Position])
+		p.Value, _ = strconv.ParseFloat(row[headerName["Value"].Position], 64)
+		p.Commission, _ = strconv.ParseFloat(row[headerName["Commission"].Position], 64)
+		p.Fio = row[headerName["Fio"].Position]
+		p.PaymentAccount = row[headerName["PaymentAccount"].Position]
 		res.Db = append(res.Db, p)
 	}
 	return res, nil

@@ -18,6 +18,8 @@ var (
 func main() {
 	// готовим тестовые данные
 	p = model.PrepareTestData(10000)
+	fmt.Println("Создали набор данных:")
+	fmt.Print(p.String())
 
 	fmt.Println("=======  tealeg/xlsx ========")
 	fileName, err := xlsx.SaveToExcel1(p, ".", "file1*.xlsx")
